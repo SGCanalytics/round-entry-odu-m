@@ -1085,6 +1085,28 @@
             if (sg === null) return '';
             return sg >= 0 ? 'positive' : 'negative';
         }
+        
+        function getSmartDefaultEndLie(startDistance, startLie, isFirstShotOfHole) {
+            const distance = parseFloat(startDistance);
+            
+            // Fallback: keep intuitive defaults if distance isn't usable yet
+            if (isNaN(distance)) {
+                return startLie === 'Green' ? 'Green' : 'Fairway';
+            }
+            
+            // First shot of a hole (tee shot) rule
+            if (isFirstShotOfHole && startLie === 'Tee') {
+                return distance < 200 ? 'Green' : 'Fairway';
+            }
+            
+            // Subsequent shots: under 200 and not recovery → likely green
+            if (distance < 200 && startLie !== 'Recovery') {
+                return 'Green';
+            }
+            
+            // Otherwise, default to fairway unless already on the green
+            return startLie === 'Green' ? 'Green' : 'Fairway';
+        }
 
         // ============================================================
         // MAIN COMPONENT
@@ -1112,6 +1134,8 @@
             });
             const [submitting, setSubmitting] = useState(false);
             const [historyExpanded, setHistoryExpanded] = useState(false);
+            const [endLieTouched, setEndLieTouched] = useState(false);
+            const [focusTarget, setFocusTarget] = useState(null);
             
             const endDistanceRef = useRef(null);
             const startDistanceRef = useRef(null);
@@ -1127,6 +1151,22 @@
                 'Scratch Golfer': 'Scratch/low handicap level (~0 handicap)'
             };
 
+            useEffect(() => {
+                if (focusTarget === 'startDistance' && startDistanceRef.current) {
+                    startDistanceRef.current.focus();
+                    if (typeof startDistanceRef.current.select === 'function') {
+                        startDistanceRef.current.select();
+                    }
+                    setFocusTarget(null);
+                } else if (focusTarget === 'endDistance' && endDistanceRef.current) {
+                    endDistanceRef.current.focus();
+                    if (typeof endDistanceRef.current.select === 'function') {
+                        endDistanceRef.current.select();
+                    }
+                    setFocusTarget(null);
+                }
+            }, [focusTarget]);
+
             // ===== HANDLERS =====
             const handleRoundInfoSubmit = () => {
                 if (!roundInfo.playerName || !roundInfo.date || !roundInfo.course || 
@@ -1135,7 +1175,7 @@
                     return;
                 }
                 setStep('shot-entry');
-                setTimeout(() => startDistanceRef.current?.focus(), 100);
+                setFocusTarget('startDistance');
             };
 
             const addShot = () => {
@@ -1170,20 +1210,32 @@
                     if (currentHole < 18) {
                         setCurrentHole(currentHole + 1);
                         setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false });
-                        setTimeout(() => startDistanceRef.current?.focus(), 50);
+                        setEndLieTouched(false);
+                        setFocusTarget('startDistance');
                     } else {
                         setStep('complete');
                     }
                 } else {
                     // Continue on same hole
+                    const nextStartDistance = currentShot.endDistance;
+                    const nextStartLie = currentShot.endLie;
+                    const nextEndLie = getSmartDefaultEndLie(nextStartDistance, nextStartLie, false);
                     setCurrentShot({
-                        startDistance: currentShot.endDistance,
-                        startLie: currentShot.endLie,
+                        startDistance: nextStartDistance,
+                        startLie: nextStartLie,
                         endDistance: '',
-                        endLie: currentShot.endLie === 'Green' ? 'Green' : 'Fairway',
+                        endLie: nextEndLie,
                         penalty: false
                     });
-                    setTimeout(() => endDistanceRef.current?.focus(), 50);
+                    setEndLieTouched(false);
+                    setFocusTarget('endDistance');
+                }
+            };
+
+            const handleEndDistanceKeyDown = (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addShot();
                 }
             };
 
@@ -1204,11 +1256,13 @@
                         startDistance: lastShot.endDistance.toString(),
                         startLie: lastShot.endLie,
                         endDistance: '',
-                        endLie: lastShot.endLie === 'Green' ? 'Green' : 'Fairway',
+                        endLie: getSmartDefaultEndLie(lastShot.endDistance, lastShot.endLie, false),
                         penalty: false
                     });
+                    setEndLieTouched(false);
                 } else {
                     setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false });
+                    setEndLieTouched(false);
                 }
             };
 
@@ -1225,11 +1279,13 @@
                         startDistance: lastShot.endDistance.toString(),
                         startLie: lastShot.endLie,
                         endDistance: '',
-                        endLie: lastShot.endLie === 'Green' ? 'Green' : 'Fairway',
+                        endLie: getSmartDefaultEndLie(lastShot.endDistance, lastShot.endLie, false),
                         penalty: false
                     });
+                    setEndLieTouched(false);
                 } else {
                     setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false });
+                    setEndLieTouched(false);
                 }
             };
 
@@ -1457,7 +1513,21 @@
                                             placeholder="Distance"
                                             value={currentShot.startDistance}
                                             disabled={!isFirstShot}
-                                            onChange={(e) => setCurrentShot({...currentShot, startDistance: e.target.value})}
+                                            onChange={(e) => {
+                                                const newStartDistance = e.target.value;
+                                                const updatedShot = { ...currentShot, startDistance: newStartDistance };
+                                                const isFirstShotOfHole = isFirstShot && updatedShot.startLie === 'Tee';
+                                                
+                                                if (!endLieTouched) {
+                                                    updatedShot.endLie = getSmartDefaultEndLie(
+                                                        newStartDistance,
+                                                        updatedShot.startLie,
+                                                        isFirstShotOfHole
+                                                    );
+                                                }
+                                                
+                                                setCurrentShot(updatedShot);
+                                            }}
                                         />
                                         <span className="input-unit">{currentShot.startLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
@@ -1465,7 +1535,21 @@
                                         className="form-select" 
                                         value={currentShot.startLie}
                                         disabled={!isFirstShot}
-                                        onChange={(e) => setCurrentShot({...currentShot, startLie: e.target.value})}
+                                        onChange={(e) => {
+                                            const newStartLie = e.target.value;
+                                            const updatedShot = { ...currentShot, startLie: newStartLie };
+                                            const isFirstShotOfHole = isFirstShot && newStartLie === 'Tee';
+                                            
+                                            if (!endLieTouched) {
+                                                updatedShot.endLie = getSmartDefaultEndLie(
+                                                    updatedShot.startDistance,
+                                                    newStartLie,
+                                                    isFirstShotOfHole
+                                                );
+                                            }
+                                            
+                                            setCurrentShot(updatedShot);
+                                        }}
                                     >
                                         {lieTypes.map(l => <option key={l} value={l}>{l}</option>)}
                                     </select>
@@ -1482,13 +1566,17 @@
                                             placeholder="0 = holed"
                                             value={currentShot.endDistance}
                                             onChange={(e) => setCurrentShot({...currentShot, endDistance: e.target.value})}
+                                            onKeyDown={handleEndDistanceKeyDown}
                                         />
                                         <span className="input-unit">{currentShot.endLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
                                     <select 
                                         className="form-select" 
                                         value={currentShot.endLie}
-                                        onChange={(e) => setCurrentShot({...currentShot, endLie: e.target.value})}
+                                        onChange={(e) => {
+                                            setEndLieTouched(true);
+                                            setCurrentShot({...currentShot, endLie: e.target.value});
+                                        }}
                                     >
                                         {lieTypes.map(l => <option key={l} value={l}>{l}</option>)}
                                     </select>
