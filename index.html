@@ -645,6 +645,88 @@
             margin-bottom: 0.5rem;
             display: block;
         }
+
+        /* ===== SHOT HISTORY TABLE ===== */
+        .shot-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            background: white;
+            border: 1px solid #e8e6e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .shot-history-table th {
+            background: #f5f4f0;
+            color: #2d5016;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 0.5rem 0.375rem;
+            text-align: left;
+            border-bottom: 1px solid #e8e6e0;
+            white-space: nowrap;
+        }
+
+        .shot-history-table td {
+            padding: 0.5rem 0.375rem;
+            border-bottom: 1px solid #e8e6e0;
+            color: #2c3333;
+        }
+
+        .shot-history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .shot-history-table tr:nth-child(even) {
+            background: #fafaf8;
+        }
+
+        .shot-history-table .shot-num {
+            font-weight: 600;
+            color: #2d5016;
+            width: 40px;
+        }
+
+        .shot-history-table .distance {
+            font-weight: 500;
+            width: 60px;
+        }
+
+        .shot-history-table .lie {
+            width: 65px;
+        }
+
+        .shot-history-table .penalty-cell {
+            width: 45px;
+            text-align: center;
+        }
+
+        .penalty-indicator {
+            display: inline-block;
+            background: #fff8f0;
+            color: #c77d3a;
+            font-weight: 600;
+            font-size: 0.65rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 2px;
+            border: 1px solid #e8d4b8;
+        }
+
+        .hole-total-row td {
+            background: #f5f4f0 !important;
+            font-weight: 600;
+            border-top: 2px solid #e8e6e0;
+        }
+
+        /* Mobile-responsive table wrapper */
+        .shot-history-table-wrapper {
+            overflow-x: auto;
+            margin-top: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body>
@@ -916,7 +998,7 @@
                             'Starting Distance': shot.startDistance,
                             'Starting Location': shot.startLie,
                             'Ending Distance': shot.endDistance,
-                            'Ending Location': shot.endLie,
+                            'Ending Lie': shot.endLie,
                             'Penalty': shot.penalty ? 'Yes' : 'No',
                             'Did Not Hit Driver': shot.didNotHitDriver ? 'Yes' : 'No',
                             'Putt Result': shot.puttResult || ''
@@ -1146,7 +1228,7 @@
                                 </label>
                             )}
                             
-                                <label htmlFor="endDistance" className="section-label" style={{marginTop: '0.75rem'}}>Ending Position</label>
+                                <label htmlFor="endDistance" className="section-label" style={{marginTop: '0.75rem'}}>Ending Distance</label>
                                 <div className="shot-input-row">
                                     <div className="input-with-unit">
                                         <input
@@ -1197,7 +1279,7 @@
                                         setEndLieTouched(true);
                                         setCurrentShot({...currentShot, endLie: lie});
                                     }}
-                                    label="Ending Location"
+                                    label="Ending Lie"
                                 />
                             </div>
                             
@@ -1245,18 +1327,38 @@
                                     </div>
                                     
                                     <div className={`shot-history-content ${historyExpanded ? 'expanded' : ''}`}>
-                                        {currentHoleData.shots.map((shot, idx) => (
-                                            <div key={idx} className="shot-item">
-                                                <div className="shot-item-header">
-                                                    <div>
-                                                        <span className="shot-label">#{shot.shotNumber}</span>
-                                                        {' '}{shot.startDistance}{shot.startLie === 'Green' ? 'ft' : 'y'} → {shot.endDistance}{shot.endLie === 'Green' ? 'ft' : 'y'}
-                                                        {shot.penalty && <span className="penalty-badge">PEN</span>}
-                                                    </div>
-    
-                                                </div>
-                                            </div>
-                                        ))}
+                                        <div className="shot-history-table-wrapper">
+                                            <table className="shot-history-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Shot</th>
+                                                        <th>Start Dist</th>
+                                                        <th>Start Lie</th>
+                                                        <th>End Dist</th>
+                                                        <th>End Lie</th>
+                                                        <th>Pen</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {currentHoleData.shots.map((shot, idx) => (
+                                                        <tr key={idx}>
+                                                            <td className="shot-num">#{shot.shotNumber}</td>
+                                                            <td className="distance">{shot.startDistance}{shot.startLie === 'Green' ? 'ft' : 'y'}</td>
+                                                            <td className="lie">{shot.startLie}</td>
+                                                            <td className="distance">{shot.endDistance}{shot.endLie === 'Green' ? 'ft' : 'y'}</td>
+                                                            <td className="lie">{shot.endLie}</td>
+                                                            <td className="penalty-cell">
+                                                                {shot.penalty && <span className="penalty-indicator">+1</span>}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="hole-total-row">
+                                                        <td colSpan="2">Total: {currentHoleData.shots.length + currentHoleData.shots.filter(s => s.penalty).length}</td>
+                                                        <td colSpan="4"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             )}
