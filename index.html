@@ -285,6 +285,11 @@
         .btn-primary:disabled {
             background: #9ca3af;
             cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-primary:disabled:hover {
+            background: #9ca3af;
         }
         
         .btn-secondary {
@@ -1435,11 +1440,11 @@
                             <button 
                                 type="button"
                                 className="numeric-pad-btn done-btn"
-                                onClick={handleDone}
+                                onClick={(e) => { e.stopPropagation(); handleDone(); }}
                             >✓</button>
                         </div>
                         
-                        <button type="button" className="numeric-pad-done" onClick={handleDone}>
+                        <button type="button" className="numeric-pad-done" onClick={(e) => { e.stopPropagation(); handleDone(); }}>
                             Done
                         </button>
                     </div>
@@ -1959,7 +1964,11 @@
                             </label>
                             
                             {/* Main Action Button */}
-                            <button className="btn btn-primary" onClick={addShot}>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={addShot}
+                                disabled={!currentShot.startDistance || !currentShot.endDistance}
+                            >
                                 {parseFloat(currentShot.endDistance) === 0 ? 'Complete Hole' : 'Add Shot'}
                             </button>
                             
