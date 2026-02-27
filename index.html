@@ -1054,10 +1054,9 @@
                 // Feature 1: Show "Did Not Hit Driver" for tee shots > 250 yards
                 const isTeeShotOver250 = isFirstShot && currentShot.startLie === 'Tee' && parseFloat(currentShot.startDistance) > 250;
                 
-                // Feature 2: Show "Putt Result" for first putt on green > 10 feet
-                const isFirstPuttOver10ft = !isFirstShot && 
+                // Feature 2: Show "Putt Result" for putts on green > 10 feet
+                const isFirstPuttOver10ft = 
                     currentShot.startLie === 'Green' && 
-                    lastShot.endLie === 'Green' && 
                     parseFloat(currentShot.startDistance) > 10;
                 
 
