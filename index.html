@@ -603,47 +603,81 @@
             font-size: 0.85rem;
         }
         
-        /* Putt result buttons */
+        /* Putt result buttons - Enhanced for visibility */
+        .putt-result-container {
+            background: #fffbf0;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            animation: puttPromptFadeIn 400ms ease-out;
+        }
+
+        @keyframes puttPromptFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .putt-result-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #b45309;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .putt-result-label::before {
+            content: "⚠️";
+            font-size: 1rem;
+        }
+
         .putt-result-selector {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
+            gap: 0.75rem;
         }
         
         .putt-result-btn {
-            padding: 0.625rem 0.75rem;
+            padding: 1rem 1.25rem;
             font-family: 'Inter', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-size: 1.1rem;
+            font-weight: 600;
             background: white;
-            border: 1.5px solid #e8e6e0;
-            border-radius: 4px;
-            color: #6b7280;
+            border: 2.5px solid #e8e6e0;
+            border-radius: 8px;
+            color: #4b5563;
             cursor: pointer;
-            transition: all 150ms ease;
+            transition: all 200ms ease;
             -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .putt-result-btn:hover {
-            border-color: #3d6b22;
-            color: #2d5016;
+            border-color: #f59e0b;
+            color: #b45309;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .putt-result-btn:active {
+            transform: translateY(0);
         }
         
         .putt-result-btn.selected {
-            background: #2d5016;
+            background: linear-gradient(135deg, #2d5016 0%, #3d6b22 100%);
             border-color: #2d5016;
             color: white;
+            box-shadow: 0 4px 12px rgba(45, 80, 22, 0.3);
         }
         
-        .putt-result-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-            display: block;
+        .putt-result-btn.selected:hover {
+            background: linear-gradient(135deg, #3d6b22 0%, #4a7d2a 100%);
+            border-color: #3d6b22;
+            color: white;
         }
 
         /* ===== SHOT HISTORY TABLE ===== */
@@ -869,6 +903,16 @@
                 const endDist = parseFloat(currentShot.endDistance);
                 if (isNaN(startDist) || startDist < 0 || isNaN(endDist) || endDist < 0) {
                     alert('Please enter valid positive numbers for distances');
+                    return;
+                }
+
+                // Validate first putt result required for putts over 10 feet on green
+                const isFirstPuttOver10ft = 
+                    currentShot.startLie === 'Green' && 
+                    parseFloat(currentShot.startDistance) > 10;
+                
+                if (isFirstPuttOver10ft && !currentShot.puttResult) {
+                    alert('Please select Short or Long for your first putt');
                     return;
                 }
 
@@ -1251,8 +1295,8 @@
                                 
                                 {/* Feature 2: Putt Result options for putts > 10 feet on green */}
                                 {isFirstPuttOver10ft && (
-                                    <div>
-                                        <span className="putt-result-label">First Putt Result</span>
+                                    <div className="putt-result-container">
+                                        <span className="putt-result-label">First Putt Result Required</span>
                                         <div className="putt-result-selector">
                                             <button 
                                                 type="button"
