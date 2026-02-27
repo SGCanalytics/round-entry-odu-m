@@ -571,6 +571,80 @@
         .lie-row .lie-selector {
             flex: 1;
         }
+        
+        /* ===== TEE SHOT & PUTT OPTIONS ===== */
+        .shot-options-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            background: #fafaf8;
+            border: 1.5px solid #e8e6e0;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 0.75rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .shot-options-toggle:hover {
+            border-color: #3d6b22;
+        }
+        
+        .shot-options-checkbox {
+            width: 1.1rem;
+            height: 1.1rem;
+            accent-color: #2d5016;
+            cursor: pointer;
+        }
+        
+        .shot-options-text {
+            font-weight: 500;
+            color: #2c3333;
+            font-size: 0.85rem;
+        }
+        
+        /* Putt result buttons */
+        .putt-result-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .putt-result-btn {
+            padding: 0.625rem 0.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: white;
+            border: 1.5px solid #e8e6e0;
+            border-radius: 4px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 150ms ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .putt-result-btn:hover {
+            border-color: #3d6b22;
+            color: #2d5016;
+        }
+        
+        .putt-result-btn.selected {
+            background: #2d5016;
+            border-color: #2d5016;
+            color: white;
+        }
+        
+        .putt-result-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -658,7 +732,9 @@
                 startLie: 'Tee',
                 endDistance: '',
                 endLie: 'Fairway',
-                penalty: false
+                penalty: false,
+                didNotHitDriver: false,
+                puttResult: ''
             });
             const [submitting, setSubmitting] = useState(false);
             const [historyExpanded, setHistoryExpanded] = useState(false);
@@ -722,7 +798,9 @@
                     startLie: currentShot.startLie,
                     endDistance: parseFloat(currentShot.endDistance),
                     endLie: currentShot.endLie,
-                    penalty: currentShot.penalty
+                    penalty: currentShot.penalty,
+                    didNotHitDriver: currentShot.didNotHitDriver,
+                    puttResult: currentShot.puttResult
                 });
                 setHoles(newHoles);
 
@@ -730,7 +808,7 @@
                 if (parseFloat(currentShot.endDistance) === 0) {
                     if (currentHole < 18) {
                         setCurrentHole(currentHole + 1);
-                        setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false });
+                        setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false, didNotHitDriver: false, puttResult: '' });
                         setEndLieTouched(false);
                         setFocusTarget('startDistance');
                     } else {
@@ -746,7 +824,9 @@
                         startLie: nextStartLie,
                         endDistance: '',
                         endLie: nextEndLie,
-                        penalty: false
+                        penalty: false,
+                        didNotHitDriver: false,
+                        puttResult: ''
                     });
                     setEndLieTouched(false);
                     setFocusTarget('endDistance');
@@ -778,11 +858,13 @@
                         startLie: lastShot.endLie,
                         endDistance: '',
                         endLie: getSmartDefaultEndLie(lastShot.endDistance, lastShot.endLie, false),
-                        penalty: false
+                        penalty: false,
+                        didNotHitDriver: false,
+                        puttResult: ''
                     });
                     setEndLieTouched(false);
                 } else {
-                    setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false });
+                    setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false, didNotHitDriver: false, puttResult: '' });
                     setEndLieTouched(false);
                 }
             };
@@ -801,11 +883,13 @@
                         startLie: lastShot.endLie,
                         endDistance: '',
                         endLie: getSmartDefaultEndLie(lastShot.endDistance, lastShot.endLie, false),
-                        penalty: false
+                        penalty: false,
+                        didNotHitDriver: false,
+                        puttResult: ''
                     });
                     setEndLieTouched(false);
                 } else {
-                    setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false });
+                    setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false, didNotHitDriver: false, puttResult: '' });
                     setEndLieTouched(false);
                 }
             };
@@ -833,7 +917,9 @@
                             'Starting Location': shot.startLie,
                             'Ending Distance': shot.endDistance,
                             'Ending Location': shot.endLie,
-                            'Penalty': shot.penalty ? 'Yes' : 'No'
+                            'Penalty': shot.penalty ? 'Yes' : 'No',
+                            'Did Not Hit Driver': shot.didNotHitDriver ? 'Yes' : 'No',
+                            'Putt Result': shot.puttResult || ''
                         });
                     });
                 });
@@ -965,6 +1051,15 @@
                 const totalScore = holes.reduce((total, hole) => 
                     total + hole.shots.length + hole.shots.filter(s => s.penalty).length, 0);
                 
+                // Feature 1: Show "Did Not Hit Driver" for tee shots > 250 yards
+                const isTeeShotOver250 = isFirstShot && currentShot.startLie === 'Tee' && parseFloat(currentShot.startDistance) > 250;
+                
+                // Feature 2: Show "Putt Result" for first putt on green > 10 feet
+                const isFirstPuttOver10ft = !isFirstShot && 
+                    currentShot.startLie === 'Green' && 
+                    lastShot.endLie === 'Green' && 
+                    parseFloat(currentShot.startDistance) > 10;
+                
 
                 
                 return (
@@ -1081,6 +1176,42 @@
                                 />
                                 <span className="penalty-text">Penalty Stroke (+1)</span>
                             </label>
+                            
+                            {/* Feature 1: Did Not Hit Driver checkbox for tee shots > 250 yards */}
+                            {isTeeShotOver250 && (
+                                <label className="shot-options-toggle">
+                                    <input 
+                                        type="checkbox" 
+                                        className="shot-options-checkbox"
+                                        checked={currentShot.didNotHitDriver}
+                                        onChange={(e) => setCurrentShot({...currentShot, didNotHitDriver: e.target.checked})}
+                                    />
+                                    <span className="shot-options-text">Did not hit Driver</span>
+                                </label>
+                            )}
+                            
+                            {/* Feature 2: Putt Result options for first putts > 10 feet */}
+                            {isFirstPuttOver10ft && (
+                                <div>
+                                    <span className="putt-result-label">First Putt Result</span>
+                                    <div className="putt-result-selector">
+                                        <button 
+                                            type="button"
+                                            className={`putt-result-btn ${currentShot.puttResult === 'Short' ? 'selected' : ''}`}
+                                            onClick={() => setCurrentShot({...currentShot, puttResult: currentShot.puttResult === 'Short' ? '' : 'Short'})}
+                                        >
+                                            Short
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            className={`putt-result-btn ${currentShot.puttResult === 'Long' ? 'selected' : ''}`}
+                                            onClick={() => setCurrentShot({...currentShot, puttResult: currentShot.puttResult === 'Long' ? '' : 'Long'})}
+                                        >
+                                            Long
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                             
                             {/* Main Action Button */}
                             <button 
