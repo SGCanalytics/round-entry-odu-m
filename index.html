@@ -515,6 +515,235 @@
                 grid-column: 1 / -1;
             }
         }
+        
+        /* ===== NUMERIC PAD (Bottom Sheet) ===== */
+        .numeric-pad-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 200ms ease-out;
+        }
+        
+        .numeric-pad-overlay.hidden {
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .numeric-pad {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px 16px 0 0;
+            padding: 1rem;
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            animation: slideUp 300ms ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .numeric-pad-value {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: #2D5016;
+            padding: 0.5rem 0 1rem;
+            font-family: 'Inter', sans-serif;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .numeric-pad-value .unit {
+            font-size: 24px;
+            color: #6B7280;
+            margin-left: 4px;
+        }
+        
+        .numeric-pad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .numeric-pad-btn {
+            height: 60px;
+            background: #F5F4F0;
+            border: none;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: 500;
+            color: #2C3333;
+            cursor: pointer;
+            transition: transform 100ms, background 100ms;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        .numeric-pad-btn:active {
+            transform: scale(0.95);
+            background: #E8E6E0;
+        }
+        
+        .numeric-pad-btn.backspace {
+            background: #F5F4F0;
+            font-size: 20px;
+        }
+        
+        .numeric-pad-btn.done-btn {
+            background: #2D5016;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .numeric-pad-done {
+            width: 100%;
+            padding: 1rem;
+            background: #2D5016;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        .numeric-pad-done:active {
+            background: #3D6B22;
+        }
+        
+        /* Touch Input Display (replaces standard input) */
+        .form-input-touchable {
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            background: white;
+            border: 1.5px solid #e8e6e0;
+            border-radius: 4px;
+            color: #2c3333;
+            cursor: pointer;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            transition: border-color 200ms ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .form-input-touchable:focus {
+            outline: none;
+            border-color: #3d6b22;
+        }
+        
+        .form-input-touchable.placeholder {
+            color: #9ca3af;
+        }
+        
+        .form-input-touchable.disabled {
+            background: #f5f4f0;
+            color: #6b7280;
+            cursor: not-allowed;
+            border-color: #e8e6e0;
+        }
+        
+        .form-input-touchable.disabled:focus {
+            border-color: #e8e6e0;
+        }
+        
+        /* ===== INLINE LIE SELECTOR BUTTONS ===== */
+        .lie-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .lie-btn {
+            padding: 0.625rem 0.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: white;
+            border: 1.5px solid #e8e6e0;
+            border-radius: 4px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 150ms ease;
+            -webkit-tap-highlight-color: transparent;
+            text-align: center;
+        }
+        
+        .lie-btn:hover {
+            border-color: #3d6b22;
+            color: #2d5016;
+        }
+        
+        .lie-btn:active {
+            transform: scale(0.97);
+        }
+        
+        .lie-btn.selected {
+            background: #2d5016;
+            border-color: #2d5016;
+            color: white;
+        }
+        
+        .lie-btn.selected:hover {
+            background: #3d6b22;
+            border-color: #3d6b22;
+            color: white;
+        }
+        
+        /* Start lie row (disabled state for non-first shots) */
+        .lie-btn.disabled {
+            background: #f5f4f0;
+            color: #9ca3af;
+            cursor: not-allowed;
+            border-color: #e8e6e0;
+        }
+        
+        .lie-btn.disabled:hover {
+            border-color: #e8e6e0;
+            color: #9ca3af;
+        }
+        
+        .lie-btn.disabled:active {
+            transform: none;
+        }
+        
+        /* Responsive: 2 columns on smaller screens */
+        @media (max-width: 380px) {
+            .lie-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Compact row layout for lie buttons next to distance */
+        .lie-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .lie-row .lie-selector {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -1109,6 +1338,142 @@
         }
 
         // ============================================================
+        // NUMERIC PAD COMPONENT (Bottom Sheet Input)
+        // ============================================================
+        function NumericPad({ isOpen, value, unit, onChange, onClose, onDone, maxValue = 600 }) {
+            const [displayValue, setDisplayValue] = React.useState('');
+            
+            React.useEffect(() => {
+                setDisplayValue(value || '');
+            }, [value, isOpen]);
+            
+            const handleNumber = (num) => {
+                let newValue = displayValue + num;
+                // Validate against max
+                if (parseInt(newValue) > maxValue) {
+                    newValue = maxValue.toString();
+                }
+                setDisplayValue(newValue);
+                onChange(newValue);
+            };
+            
+            const handleBackspace = () => {
+                const newValue = displayValue.slice(0, -1);
+                setDisplayValue(newValue);
+                onChange(newValue);
+            };
+            
+            const handleDone = () => {
+                onDone(displayValue);
+            };
+            
+            if (!isOpen) return null;
+            
+            return (
+                <div className="numeric-pad-overlay" onClick={onClose}>
+                    <div className="numeric-pad" onClick={e => e.stopPropagation()}>
+                        <div className="numeric-pad-value">
+                            {displayValue || '0'}<span className="unit">{unit}</span>
+                        </div>
+                        
+                        <div className="numeric-pad-grid">
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('1')}
+                            >1</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('2')}
+                            >2</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('3')}
+                            >3</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('4')}
+                            >4</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('5')}
+                            >5</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('6')}
+                            >6</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('7')}
+                            >7</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('8')}
+                            >8</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('9')}
+                            >9</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn backspace"
+                                onClick={handleBackspace}
+                            >⌫</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn"
+                                onClick={() => handleNumber('0')}
+                            >0</button>
+                            <button 
+                                type="button"
+                                className="numeric-pad-btn done-btn"
+                                onClick={handleDone}
+                            >✓</button>
+                        </div>
+                        
+                        <button type="button" className="numeric-pad-done" onClick={handleDone}>
+                            Done
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // ============================================================
+        // LIE SELECTOR COMPONENT (Inline Buttons)
+        // ============================================================
+        function LieSelector({ value, onChange, disabled = false, label }) {
+            const lieTypes = ['Tee', 'Fairway', 'Rough', 'Sand', 'Recovery', 'Green'];
+            
+            return (
+                <div>
+                    {label && <span className="section-label">{label}</span>}
+                    <div className="lie-selector">
+                        {lieTypes.map(lie => (
+                            <button
+                                key={lie}
+                                type="button"
+                                className={`lie-btn ${value === lie ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
+                                onClick={() => !disabled && onChange(lie)}
+                                disabled={disabled}
+                            >
+                                {lie}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // ============================================================
         // MAIN COMPONENT
         // ============================================================
         function GolfTracker() {
@@ -1136,6 +1501,10 @@
             const [historyExpanded, setHistoryExpanded] = useState(false);
             const [endLieTouched, setEndLieTouched] = useState(false);
             const [focusTarget, setFocusTarget] = useState(null);
+            
+            // Numeric Pad State
+            const [numericPadOpen, setNumericPadOpen] = useState(false);
+            const [numericPadField, setNumericPadField] = useState(null); // 'startDistance' or 'endDistance'
             
             const endDistanceRef = useRef(null);
             const startDistanceRef = useRef(null);
@@ -1237,6 +1606,41 @@
                     event.preventDefault();
                     addShot();
                 }
+            };
+            
+            // Numeric Pad Handlers
+            const openNumericPad = (field) => {
+                setNumericPadField(field);
+                setNumericPadOpen(true);
+            };
+            
+            const closeNumericPad = () => {
+                setNumericPadOpen(false);
+                setNumericPadField(null);
+            };
+            
+            const handleNumericPadChange = (newValue) => {
+                if (numericPadField === 'startDistance') {
+                    const updatedShot = { ...currentShot, startDistance: newValue };
+                    const isFirstShotOfHole = isFirstShot && updatedShot.startLie === 'Tee';
+                    
+                    if (!endLieTouched) {
+                        updatedShot.endLie = getSmartDefaultEndLie(
+                            newValue,
+                            updatedShot.startLie,
+                            isFirstShotOfHole
+                        );
+                    }
+                    
+                    setCurrentShot(updatedShot);
+                } else if (numericPadField === 'endDistance') {
+                    setCurrentShot({...currentShot, endDistance: newValue});
+                }
+            };
+            
+            const handleNumericPadDone = (finalValue) => {
+                handleNumericPadChange(finalValue);
+                closeNumericPad();
             };
 
             const removePreviousShot = () => {
@@ -1505,82 +1909,60 @@
                                 <span className="section-label">Shot #{currentHoleData.shots.length + 1} - Starting Position</span>
                                 <div className="shot-input-row">
                                     <div className="input-with-unit">
-                                        <input 
-                                            ref={startDistanceRef}
-                                            type="number" 
-                                            inputMode="decimal"
-                                            className="form-input" 
-                                            placeholder="Distance"
-                                            value={currentShot.startDistance}
-                                            disabled={!isFirstShot}
-                                            onChange={(e) => {
-                                                const newStartDistance = e.target.value;
-                                                const updatedShot = { ...currentShot, startDistance: newStartDistance };
-                                                const isFirstShotOfHole = isFirstShot && updatedShot.startLie === 'Tee';
-                                                
-                                                if (!endLieTouched) {
-                                                    updatedShot.endLie = getSmartDefaultEndLie(
-                                                        newStartDistance,
-                                                        updatedShot.startLie,
-                                                        isFirstShotOfHole
-                                                    );
-                                                }
-                                                
-                                                setCurrentShot(updatedShot);
-                                            }}
-                                        />
+                                        <div 
+                                            className={`form-input-touchable ${!currentShot.startDistance ? 'placeholder' : ''} ${!isFirstShot ? 'disabled' : ''}`}
+                                            onClick={() => isFirstShot && openNumericPad('startDistance')}
+                                            style={{ cursor: isFirstShot ? 'pointer' : 'not-allowed' }}
+                                        >
+                                            {currentShot.startDistance || 'Distance'}
+                                        </div>
                                         <span className="input-unit">{currentShot.startLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
-                                    <select 
-                                        className="form-select" 
-                                        value={currentShot.startLie}
-                                        disabled={!isFirstShot}
-                                        onChange={(e) => {
-                                            const newStartLie = e.target.value;
-                                            const updatedShot = { ...currentShot, startLie: newStartLie };
-                                            const isFirstShotOfHole = isFirstShot && newStartLie === 'Tee';
-                                            
-                                            if (!endLieTouched) {
-                                                updatedShot.endLie = getSmartDefaultEndLie(
-                                                    updatedShot.startDistance,
-                                                    newStartLie,
-                                                    isFirstShotOfHole
-                                                );
-                                            }
-                                            
-                                            setCurrentShot(updatedShot);
-                                        }}
-                                    >
-                                        {lieTypes.map(l => <option key={l} value={l}>{l}</option>)}
-                                    </select>
                                 </div>
+                                
+                                {/* Inline Lie Selector for Start Position - Only enabled for first shot */}
+                                <LieSelector 
+                                    value={currentShot.startLie}
+                                    onChange={(newStartLie) => {
+                                        const updatedShot = { ...currentShot, startLie: newStartLie };
+                                        const isFirstShotOfHole = isFirstShot && newStartLie === 'Tee';
+                                        
+                                        if (!endLieTouched) {
+                                            updatedShot.endLie = getSmartDefaultEndLie(
+                                                updatedShot.startDistance,
+                                                newStartLie,
+                                                isFirstShotOfHole
+                                            );
+                                        }
+                                        
+                                        setCurrentShot(updatedShot);
+                                    }}
+                                    disabled={!isFirstShot}
+                                    label="Starting Location"
+                                />
                                 
                                 <span className="section-label" style={{marginTop: '0.75rem'}}>Ending Position</span>
                                 <div className="shot-input-row">
                                     <div className="input-with-unit">
-                                        <input 
-                                            ref={endDistanceRef}
-                                            type="number" 
-                                            inputMode="decimal"
-                                            className="form-input" 
-                                            placeholder="0 = holed"
-                                            value={currentShot.endDistance}
-                                            onChange={(e) => setCurrentShot({...currentShot, endDistance: e.target.value})}
-                                            onKeyDown={handleEndDistanceKeyDown}
-                                        />
+                                        <div 
+                                            className={`form-input-touchable ${!currentShot.endDistance ? 'placeholder' : ''}`}
+                                            onClick={() => openNumericPad('endDistance')}
+                                        >
+                                            {currentShot.endDistance !== '' ? currentShot.endDistance : '0 = holed'}
+                                        </div>
                                         <span className="input-unit">{currentShot.endLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
-                                    <select 
-                                        className="form-select" 
-                                        value={currentShot.endLie}
-                                        onChange={(e) => {
-                                            setEndLieTouched(true);
-                                            setCurrentShot({...currentShot, endLie: e.target.value});
-                                        }}
-                                    >
-                                        {lieTypes.map(l => <option key={l} value={l}>{l}</option>)}
-                                    </select>
                                 </div>
+                                
+                                {/* Inline Lie Selector - Always Visible Buttons */}
+                                <LieSelector 
+                                    value={currentShot.endLie}
+                                    onChange={(lie) => {
+                                        setEndLieTouched(true);
+                                        setCurrentShot({...currentShot, endLie: lie});
+                                    }}
+                                    label="Ending Location"
+                                />
                             </div>
                             
                             {/* Penalty Toggle */}
@@ -1641,6 +2023,20 @@
                                 </div>
                             )}
                         </div>
+                        
+                        {/* Numeric Pad Modal */}
+                        <NumericPad 
+                            isOpen={numericPadOpen}
+                            value={numericPadField === 'startDistance' ? currentShot.startDistance : currentShot.endDistance}
+                            unit={numericPadField === 'startDistance' 
+                                ? (currentShot.startLie === 'Green' ? 'ft' : 'yd')
+                                : (currentShot.endLie === 'Green' ? 'ft' : 'yd')
+                            }
+                            onChange={handleNumericPadChange}
+                            onClose={closeNumericPad}
+                            onDone={handleNumericPadDone}
+                            maxValue={numericPadField === 'startDistance' && currentShot.startLie === 'Green' ? 120 : 600}
+                        />
                     </div>
                 );
             }
