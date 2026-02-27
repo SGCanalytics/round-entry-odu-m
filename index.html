@@ -1134,6 +1134,19 @@
                                     </span>
                                 </div>
 
+                            {/* Feature 1: Did Not Hit Driver checkbox for tee shots > 250 yards */}
+                            {isTeeShotOver250 && (
+                                <label className="shot-options-toggle">
+                                    <input 
+                                        type="checkbox" 
+                                        className="shot-options-checkbox"
+                                        checked={currentShot.didNotHitDriver}
+                                        onChange={(e) => setCurrentShot({...currentShot, didNotHitDriver: e.target.checked})}
+                                    />
+                                    <span className="shot-options-text">Did not hit Driver</span>
+                                </label>
+                            )}
+                            
                                 <label htmlFor="endDistance" className="section-label" style={{marginTop: '0.75rem'}}>Ending Position</label>
                                 <div className="shot-input-row">
                                     <div className="input-with-unit">
@@ -1176,19 +1189,6 @@
                                 />
                                 <span className="penalty-text">Penalty Stroke (+1)</span>
                             </label>
-                            
-                            {/* Feature 1: Did Not Hit Driver checkbox for tee shots > 250 yards */}
-                            {isTeeShotOver250 && (
-                                <label className="shot-options-toggle">
-                                    <input 
-                                        type="checkbox" 
-                                        className="shot-options-checkbox"
-                                        checked={currentShot.didNotHitDriver}
-                                        onChange={(e) => setCurrentShot({...currentShot, didNotHitDriver: e.target.checked})}
-                                    />
-                                    <span className="shot-options-text">Did not hit Driver</span>
-                                </label>
-                            )}
                             
                             {/* Feature 2: Putt Result options for first putts > 10 feet */}
                             {isFirstPuttOver10ft && (
