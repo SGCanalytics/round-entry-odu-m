@@ -1340,7 +1340,7 @@
         // ============================================================
         // NUMERIC PAD COMPONENT (Bottom Sheet Input)
         // ============================================================
-        function NumericPad({ isOpen, value, unit, onChange, onClose, onDone, maxValue = 600 }) {
+        function NumericPad({ isOpen, value, unit, onChange, onClose, onDone, maxValue = 700 }) {
             const [displayValue, setDisplayValue] = React.useState('');
             
             React.useEffect(() => {
@@ -1910,36 +1910,18 @@
                                 <div className="shot-input-row">
                                     <div className="input-with-unit">
                                         <div 
-                                            className={`form-input-touchable ${!currentShot.startDistance ? 'placeholder' : ''} ${!isFirstShot ? 'disabled' : ''}`}
-                                            onClick={() => isFirstShot && openNumericPad('startDistance')}
-                                            style={{ cursor: isFirstShot ? 'pointer' : 'not-allowed' }}
+                                            className={`form-input-touchable ${!currentShot.startDistance ? 'placeholder' : ''}`}
+                                            onClick={() => openNumericPad('startDistance')}
                                         >
                                             {currentShot.startDistance || 'Distance'}
                                         </div>
                                         <span className="input-unit">{currentShot.startLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
+                                    {/* Read-only starting location display - auto-set from previous shot or Tee for first shot */}
+                                    <div className="form-input-touchable disabled" style={{ flex: '0 0 auto', minWidth: '90px', textAlign: 'center', justifyContent: 'center' }}>
+                                        {currentShot.startLie}
+                                    </div>
                                 </div>
-                                
-                                {/* Inline Lie Selector for Start Position - Only enabled for first shot */}
-                                <LieSelector 
-                                    value={currentShot.startLie}
-                                    onChange={(newStartLie) => {
-                                        const updatedShot = { ...currentShot, startLie: newStartLie };
-                                        const isFirstShotOfHole = isFirstShot && newStartLie === 'Tee';
-                                        
-                                        if (!endLieTouched) {
-                                            updatedShot.endLie = getSmartDefaultEndLie(
-                                                updatedShot.startDistance,
-                                                newStartLie,
-                                                isFirstShotOfHole
-                                            );
-                                        }
-                                        
-                                        setCurrentShot(updatedShot);
-                                    }}
-                                    disabled={!isFirstShot}
-                                    label="Starting Location"
-                                />
                                 
                                 <span className="section-label" style={{marginTop: '0.75rem'}}>Ending Position</span>
                                 <div className="shot-input-row">
@@ -2035,7 +2017,7 @@
                             onChange={handleNumericPadChange}
                             onClose={closeNumericPad}
                             onDone={handleNumericPadDone}
-                            maxValue={numericPadField === 'startDistance' && currentShot.startLie === 'Green' ? 120 : 600}
+                            maxValue={numericPadField === 'startDistance' && currentShot.startLie === 'Green' ? 120 : 700}
                         />
                     </div>
                 );
