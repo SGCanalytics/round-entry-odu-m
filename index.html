@@ -1167,6 +1167,29 @@
                                     </div>
                                 </div>
                                 
+                                {/* Feature 2: Putt Result options for putts > 10 feet on green */}
+                                {isFirstPuttOver10ft && (
+                                    <div>
+                                        <span className="putt-result-label">First Putt Result</span>
+                                        <div className="putt-result-selector">
+                                            <button 
+                                                type="button"
+                                                className={`putt-result-btn ${currentShot.puttResult === 'Short' ? 'selected' : ''}`}
+                                                onClick={() => setCurrentShot({...currentShot, puttResult: currentShot.puttResult === 'Short' ? '' : 'Short'})}
+                                            >
+                                                Short
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                className={`putt-result-btn ${currentShot.puttResult === 'Long' ? 'selected' : ''}`}
+                                                onClick={() => setCurrentShot({...currentShot, puttResult: currentShot.puttResult === 'Long' ? '' : 'Long'})}
+                                            >
+                                                Long
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {/* Inline Lie Selector - Always Visible Buttons */}
                                 <LieSelector 
                                     value={currentShot.endLie}
@@ -1188,29 +1211,6 @@
                                 />
                                 <span className="penalty-text">Penalty Stroke (+1)</span>
                             </label>
-                            
-                            {/* Feature 2: Putt Result options for first putts > 10 feet */}
-                            {isFirstPuttOver10ft && (
-                                <div>
-                                    <span className="putt-result-label">First Putt Result</span>
-                                    <div className="putt-result-selector">
-                                        <button 
-                                            type="button"
-                                            className={`putt-result-btn ${currentShot.puttResult === 'Short' ? 'selected' : ''}`}
-                                            onClick={() => setCurrentShot({...currentShot, puttResult: currentShot.puttResult === 'Short' ? '' : 'Short'})}
-                                        >
-                                            Short
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            className={`putt-result-btn ${currentShot.puttResult === 'Long' ? 'selected' : ''}`}
-                                            onClick={() => setCurrentShot({...currentShot, puttResult: currentShot.puttResult === 'Long' ? '' : 'Long'})}
-                                        >
-                                            Long
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                             
                             {/* Main Action Button */}
                             <button 
