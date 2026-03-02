@@ -615,9 +615,9 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.625rem 0.875rem;
+            padding: 0.75rem 1rem;
             background: #fef2f2;
-            border: 2px solid #dc2626;
+            border: 1.5px solid #dc2626;
             border-radius: 4px;
             cursor: pointer;
             margin-bottom: 0.75rem;
@@ -640,64 +640,50 @@
         }
 
         .putt-result-label {
-            font-size: 0.85rem;
-            font-weight: 700;
+            font-weight: 500;
             color: #991b1b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .putt-result-label::before {
-            content: "⚠️";
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .putt-result-selector {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.75rem;
+            flex: 1;
         }
 
         .putt-result-btn {
-            padding: 1rem 1.25rem;
+            padding: 0.625rem 0.875rem;
             font-family: 'Inter', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 0.85rem;
+            font-weight: 500;
             background: white;
-            border: 2.5px solid #dc2626;
-            border-radius: 8px;
+            border: 1.5px solid #dc2626;
+            border-radius: 4px;
             color: #991b1b;
             cursor: pointer;
             transition: all 200ms ease;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
         }
 
         .putt-result-btn:hover {
             background: #fef2f2;
             border-color: #b91c1c;
             color: #b91c1c;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2);
         }
 
         .putt-result-btn:active {
-            transform: translateY(0);
+            transform: scale(0.97);
         }
 
         .putt-result-btn.selected {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: #dc2626;
             border-color: #dc2626;
             color: white;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
         }
 
         .putt-result-btn.selected:hover {
-            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            background: #b91c1c;
             border-color: #b91c1c;
             color: white;
         }
@@ -1439,7 +1425,7 @@
                                 {/* Feature 2: Putt Result options for putts > 10 feet on green */}
                                 {isFirstPuttOver10ft && (
                                     <div className="putt-result-container">
-                                        <span className="putt-result-label">First Putt Result Required</span>
+                                        <span className="putt-result-label">First Putt Result</span>
                                         <div className="putt-result-selector">
                                             <button 
                                                 type="button"
