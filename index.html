@@ -866,6 +866,86 @@
             const [focusTarget, setFocusTarget] = useState(null);
             const [isProcessingShot, setIsProcessingShot] = useState(false);
 
+            // DEBUG: Log potential data loss risk on mount
+            useEffect(() => {
+                console.log('[PROD-CHECK] App mounted - current state exists:', holes.some(h => h.shots.length > 0));
+            }, []);
+
+            // ===== LOCALSTORAGE PERSISTENCE =====
+            const STORAGE_KEY = 'golfTrackerData';
+            
+            // Save current state to localStorage
+            const saveToLocalStorage = () => {
+                try {
+                    const dataToSave = {
+                        roundInfo,
+                        currentHole,
+                        holes,
+                        step,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+                    console.log('[localStorage] Data saved');
+                } catch (error) {
+                    console.error('[localStorage] Save failed:', error);
+                }
+            };
+
+            // Load state from localStorage
+            const loadFromLocalStorage = () => {
+                try {
+                    const savedData = localStorage.getItem(STORAGE_KEY);
+                    if (savedData) {
+                        const parsed = JSON.parse(savedData);
+                        console.log('[localStorage] Found saved data from', new Date(parsed.timestamp).toLocaleString());
+                        return parsed;
+                    }
+                } catch (error) {
+                    console.error('[localStorage] Load failed:', error);
+                }
+                return null;
+            };
+
+            // Clear localStorage after successful submission
+            const clearLocalStorage = () => {
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                    console.log('[localStorage] Data cleared after submission');
+                } catch (error) {
+                    console.error('[localStorage] Clear failed:', error);
+                }
+            };
+
+            // Load saved data on mount
+            useEffect(() => {
+                const savedData = loadFromLocalStorage();
+                if (savedData) {
+                    // Restore all state
+                    if (savedData.roundInfo) setRoundInfo(savedData.roundInfo);
+                    if (savedData.currentHole) setCurrentHole(savedData.currentHole);
+                    if (savedData.holes) setHoles(savedData.holes);
+                    if (savedData.step) setStep(savedData.step);
+                    console.log('[localStorage] State restored successfully');
+                }
+            }, []);
+
+            // Auto-save on any state change (debounced)
+            useEffect(() => {
+                const saveTimeout = setTimeout(() => {
+                    if (step !== 'round-info') {
+                        saveToLocalStorage();
+                    }
+                }, 500); // Debounce 500ms to avoid excessive writes
+                return () => clearTimeout(saveTimeout);
+            }, [roundInfo, currentHole, holes, step]);
+
+            // DEBUG: Log Google Sheets submission attempt
+            const debugLogSubmission = (data) => {
+                console.log('[PROD-CHECK] Attempting Google Sheets submission...');
+                console.log('[PROD-CHECK] Using no-cors mode - cannot verify actual success');
+                console.log('[PROD-CHECK] Data being sent:', data.length, 'records');
+            };
+
             const endDistanceRef = useRef(null);
             const startDistanceRef = useRef(null);
             const didNotHitDriverRef = useRef(null);
@@ -1163,6 +1243,9 @@
                 
                 setSubmitting(true);
                 try {
+                    // DEBUG: Log submission attempt
+                    debugLogSubmission(data);
+                    
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 15000);
                     
@@ -1175,6 +1258,7 @@
                     });
                     clearTimeout(timeoutId);
                     alert('Round successfully submitted to Google Sheets!');
+                    clearLocalStorage(); // Clear saved data after successful submission
                     setStep('submitted');
                 } catch (error) {
                     console.error(error);
@@ -1193,10 +1277,14 @@
                     alert('No shot data to export. Please add some shots first.');
                     return;
                 }
+                // Sanitize filename to remove invalid characters
+                const sanitize = (str) => str.replace(/[<>:"/\\|?*]/g, '_').trim() || 'Unknown';
+                const safePlayerName = sanitize(roundInfo.playerName);
+                const safeCourse = sanitize(roundInfo.course);
                 const ws = XLSX.utils.json_to_sheet(data);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Round Data');
-                XLSX.writeFile(wb, `${roundInfo.playerName}_${roundInfo.course}_${roundInfo.date}.xlsx`);
+                XLSX.writeFile(wb, `${safePlayerName}_${safeCourse}_${roundInfo.date}.xlsx`);
             };
 
             // ===== RENDER: ROUND INFO =====
