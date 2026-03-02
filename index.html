@@ -610,14 +610,28 @@
             font-size: 0.85rem;
         }
 
-        /* Putt result buttons - Red Penalty Box Style */
+        /* Putt result buttons - Matching Did Not Hit Driver style */
         .putt-result-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.875rem;
             background: #fef2f2;
             border: 2px solid #dc2626;
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
             margin-bottom: 0.75rem;
-            animation: puttPromptFadeIn 400ms ease-out;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .putt-result-container:hover {
+            background: #fee2e2;
+            border-color: #b91c1c;
+        }
+
+        .putt-result-container.active {
+            background: #fef2f2;
+            border-color: #dc2626;
         }
 
         @keyframes puttPromptFadeIn {
@@ -845,8 +859,8 @@
                 date: new Date().toISOString().split('T')[0],
                 course: '',
                 tournament: '',
-                weatherDifficulty: '',
-                courseDifficulty: ''
+                weatherDifficulty: 'Normal',
+                courseDifficulty: 'Standard'
             });
             
             const [currentHole, setCurrentHole] = useState(1);
@@ -864,9 +878,15 @@
             const [historyExpanded, setHistoryExpanded] = useState(false);
             const [endLieTouched, setEndLieTouched] = useState(false);
             const [focusTarget, setFocusTarget] = useState(null);
+            const [isProcessingShot, setIsProcessingShot] = useState(false);
 
             const endDistanceRef = useRef(null);
             const startDistanceRef = useRef(null);
+            const didNotHitDriverRef = useRef(null);
+            const penaltyRef = useRef(null);
+            const addShotBtnRef = useRef(null);
+            const undoShotBtnRef = useRef(null);
+            const prevHoleBtnRef = useRef(null);
 
             const weatherOptions = ['Cold', 'Windy', 'Cold and Windy', 'Normal'];
             const courseOptions = ['Hard', 'Standard', 'Easy'];
@@ -901,8 +921,13 @@
             };
 
             const addShot = () => {
+                // Debounce to prevent double-submission
+                if (isProcessingShot) return;
+                setIsProcessingShot(true);
+                
                 if (!currentShot.startDistance || !currentShot.endDistance) {
                     alert('Please enter both start and end distances');
+                    setIsProcessingShot(false);
                     return;
                 }
 
@@ -911,6 +936,7 @@
                 const endDist = parseFloat(currentShot.endDistance);
                 if (isNaN(startDist) || startDist < 0 || isNaN(endDist) || endDist < 0) {
                     alert('Please enter valid positive numbers for distances');
+                    setIsProcessingShot(false);
                     return;
                 }
 
@@ -921,6 +947,7 @@
                 
                 if (isFirstPuttOver10ft && !currentShot.puttResult) {
                     alert('Please select Short or Long for your first putt');
+                    setIsProcessingShot(false);
                     return;
                 }
 
@@ -965,12 +992,82 @@
                     setEndLieTouched(false);
                     setFocusTarget('endDistance');
                 }
+                
+                // Reset debounce flag after a short delay
+                setTimeout(() => setIsProcessingShot(false), 100);
             };
 
             const handleEndDistanceKeyDown = (event) => {
                 if (event.key === 'Enter') {
                     event.preventDefault();
                     addShot();
+                }
+            };
+
+            // Handle Tab key navigation for desktop users
+            const handleTabKeyDown = (event, currentField) => {
+                const isShift = event.shiftKey;
+                
+                // Define the ordered fields for Tab navigation
+                // Note: isTeeShotOver250 is computed in the render section
+                const isTeeShotOver250 = currentShot.startLie === 'Tee' && parseFloat(currentShot.startDistance) > 250;
+                const isStartDistanceDisabled = currentShot.startLie !== 'Tee' && holes[currentHole - 1].shots.length > 0;
+                
+                const orderedFields = [];
+                
+                // 1. Start Distance (skip if disabled)
+                if (!isStartDistanceDisabled) {
+                    orderedFields.push({ name: 'startDistance', ref: startDistanceRef });
+                }
+                
+                // 2. Did Not Hit Driver (only if tee shot > 250 yards)
+                if (isTeeShotOver250) {
+                    orderedFields.push({ name: 'didNotHitDriver', ref: didNotHitDriverRef });
+                }
+                
+                // 3. End Distance
+                orderedFields.push({ name: 'endDistance', ref: endDistanceRef });
+                
+                // 4. Penalty
+                orderedFields.push({ name: 'penalty', ref: penaltyRef });
+                
+                // 5. Add Shot
+                orderedFields.push({ name: 'addShot', ref: addShotBtnRef });
+                
+                // 6. Undo Shot
+                orderedFields.push({ name: 'undoShot', ref: undoShotBtnRef });
+                
+                // 7. Prev Hole
+                orderedFields.push({ name: 'prevHole', ref: prevHoleBtnRef });
+                
+                // Find current index
+                const currentIndex = orderedFields.findIndex(f => f.name === currentField);
+                
+                if (currentIndex === -1) return; // Field not in ordered list
+                
+                let nextIndex;
+                
+                if (isShift) {
+                    // Shift+Tab: go backwards
+                    if (currentIndex === 0) {
+                        // At first field, allow default browser behavior
+                        return; 
+                    }
+                    nextIndex = currentIndex - 1;
+                } else {
+                    // Tab: go forwards
+                    if (currentIndex === orderedFields.length - 1) {
+                        // At last field, allow default browser behavior
+                        return;
+                    }
+                    nextIndex = currentIndex + 1;
+                }
+                
+                // Prevent default and focus next field
+                event.preventDefault();
+                const nextField = orderedFields[nextIndex];
+                if (nextField.ref.current) {
+                    nextField.ref.current.focus();
                 }
             };
 
@@ -1033,6 +1130,12 @@
                 const data = [];
                 let runningScore = 0;
                 
+                // Check if there's any data to export
+                const hasData = holes.some(hole => hole.shots.length > 0);
+                if (!hasData) {
+                    return [];
+                }
+                
                 holes.forEach((hole, holeIdx) => {
                     hole.shots.forEach((shot) => {
                         runningScore += 1 + (shot.penalty ? 1 : 0);
@@ -1066,26 +1169,45 @@
                     return;
                 }
                 
+                const data = prepareDataForExport();
+                if (data.length === 0) {
+                    alert('No shot data to submit. Please add some shots first.');
+                    return;
+                }
+                
                 setSubmitting(true);
                 try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+                    
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
+                        signal: controller.signal,
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: prepareDataForExport() })
+                        body: JSON.stringify({ data })
                     });
+                    clearTimeout(timeoutId);
                     alert('Round successfully submitted to Google Sheets!');
                     setStep('submitted');
                 } catch (error) {
                     console.error(error);
-                    alert('Error submitting. Please try downloading Excel file instead.');
+                    const errorMessage = error.name === 'AbortError' 
+                        ? 'Request timed out. Please try again or download Excel file.'
+                        : 'Error submitting. Please try downloading Excel file instead.';
+                    alert(errorMessage);
                 } finally {
                     setSubmitting(false);
                 }
             };
 
             const downloadExcel = () => {
-                const ws = XLSX.utils.json_to_sheet(prepareDataForExport());
+                const data = prepareDataForExport();
+                if (data.length === 0) {
+                    alert('No shot data to export. Please add some shots first.');
+                    return;
+                }
+                const ws = XLSX.utils.json_to_sheet(data);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Round Data');
                 XLSX.writeFile(wb, `${roundInfo.playerName}_${roundInfo.course}_${roundInfo.date}.xlsx`);
@@ -1258,6 +1380,11 @@
                                             }}
                                             placeholder="Distance"
                                             ref={startDistanceRef}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Tab') {
+                                                    handleTabKeyDown(e, 'startDistance');
+                                                }
+                                            }}
                                         />
                                         <span className="input-unit">{currentShot.startLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
@@ -1269,12 +1396,13 @@
 
                             {/* Feature 1: Did Not Hit Driver checkbox for tee shots > 250 yards */}
                             {isTeeShotOver250 && (
-                                <label className="shot-options-toggle">
+                                <label className="shot-options-toggle" ref={didNotHitDriverRef}>
                                     <input 
                                         type="checkbox" 
                                         className="shot-options-checkbox"
                                         checked={currentShot.didNotHitDriver}
                                         onChange={(e) => setCurrentShot({...currentShot, didNotHitDriver: e.target.checked})}
+                                        onKeyDown={(e) => handleTabKeyDown(e, 'didNotHitDriver')}
                                     />
                                     <span className="shot-options-text">Did not hit Driver</span>
                                 </label>
@@ -1295,7 +1423,14 @@
                                             onChange={(e) => setCurrentShot({...currentShot, endDistance: e.target.value})}
                                             placeholder="0 = holed"
                                             ref={endDistanceRef}
-                                            onKeyDown={handleEndDistanceKeyDown}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Tab') {
+                                                    handleTabKeyDown(e, 'endDistance');
+                                                } else if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addShot();
+                                                }
+                                            }}
                                         />
                                         <span className="input-unit">{currentShot.endLie === 'Green' ? 'ft' : 'yd'}</span>
                                     </div>
@@ -1336,12 +1471,13 @@
                             </div>
                             
                             {/* Penalty Toggle */}
-                            <label className={`penalty-toggle ${currentShot.penalty ? 'active' : ''}`}>
+                            <label className={`penalty-toggle ${currentShot.penalty ? 'active' : ''}`} ref={penaltyRef}>
                                 <input 
                                     type="checkbox" 
                                     className="penalty-checkbox"
                                     checked={currentShot.penalty}
                                     onChange={(e) => setCurrentShot({...currentShot, penalty: e.target.checked})}
+                                    onKeyDown={(e) => handleTabKeyDown(e, 'penalty')}
                                 />
                                 <span className="penalty-text">Penalty Stroke (+1)</span>
                             </label>
@@ -1351,16 +1487,28 @@
                                 className="btn btn-primary" 
                                 onClick={addShot}
                                 disabled={!currentShot.startDistance || !currentShot.endDistance}
+                                ref={addShotBtnRef}
+                                onKeyDown={(e) => handleTabKeyDown(e, 'addShot')}
                             >
                                 {parseFloat(currentShot.endDistance) === 0 ? 'Complete Hole' : 'Add Shot'}
                             </button>
                             
                             {/* Secondary Actions */}
                             <div className="btn-group">
-                                <button className="btn btn-small btn-outline" onClick={removePreviousShot}>
+                                <button 
+                                    className="btn btn-small btn-outline" 
+                                    onClick={removePreviousShot}
+                                    ref={undoShotBtnRef}
+                                    onKeyDown={(e) => handleTabKeyDown(e, 'undoShot')}
+                                >
                                     Undo Shot
                                 </button>
-                                <button className="btn btn-small btn-outline" onClick={goToPreviousHole}>
+                                <button 
+                                    className="btn btn-small btn-outline" 
+                                    onClick={goToPreviousHole}
+                                    ref={prevHoleBtnRef}
+                                    onKeyDown={(e) => handleTabKeyDown(e, 'prevHole')}
+                                >
                                     Prev Hole
                                 </button>
                             </div>
