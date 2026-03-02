@@ -954,6 +954,7 @@
             const addShotBtnRef = useRef(null);
             const undoShotBtnRef = useRef(null);
             const prevHoleBtnRef = useRef(null);
+            const newRoundBtnRef = useRef(null);
 
             const weatherOptions = ['Cold', 'Windy', 'Cold and Windy', 'Normal'];
             const courseOptions = ['Hard', 'Standard', 'Easy'];
@@ -1107,6 +1108,9 @@
                 // 7. Prev Hole
                 orderedFields.push({ name: 'prevHole', ref: prevHoleBtnRef });
                 
+                // 8. New Round
+                orderedFields.push({ name: 'newRound', ref: newRoundBtnRef });
+                
                 // Find current index
                 const currentIndex = orderedFields.findIndex(f => f.name === currentField);
                 
@@ -1189,6 +1193,23 @@
                 } else {
                     setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false, didNotHitDriver: false, puttResult: '' });
                     setEndLieTouched(false);
+                }
+            };
+
+            const startNewRound = () => {
+                const hasData = holes.some(hole => hole.shots.length > 0);
+                const message = hasData 
+                    ? 'Are you sure you want to start a new round? All current shot data will be lost.'
+                    : 'Are you sure you want to start a new round?';
+                
+                if (confirm(message)) {
+                    // Reset all round data
+                    setHoles(Array.from({ length: 18 }, () => ({ shots: [] })));
+                    setCurrentHole(1);
+                    setCurrentShot({ startDistance: '', startLie: 'Tee', endDistance: '', endLie: 'Fairway', penalty: false, didNotHitDriver: false, puttResult: '' });
+                    setEndLieTouched(false);
+                    clearLocalStorage();
+                    setStep('round-info');
                 }
             };
 
@@ -1591,7 +1612,7 @@
                             </button>
                             
                             {/* Secondary Actions */}
-                            <div className="btn-group">
+                            <div className="btn-group" style={{gridTemplateColumns: '1fr 1fr 1fr'}}>
                                 <button 
                                     className="btn btn-small btn-outline" 
                                     onClick={removePreviousShot}
@@ -1607,6 +1628,14 @@
                                     onKeyDown={(e) => handleTabKeyDown(e, 'prevHole')}
                                 >
                                     Prev Hole
+                                </button>
+                                <button 
+                                    className="btn btn-small btn-outline" 
+                                    onClick={startNewRound}
+                                    ref={newRoundBtnRef}
+                                    onKeyDown={(e) => handleTabKeyDown(e, 'newRound')}
+                                >
+                                    New Round
                                 </button>
                             </div>
                             
